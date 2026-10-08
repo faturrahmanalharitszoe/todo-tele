@@ -50,7 +50,7 @@ def list_todos(user_id, only_pending=False):
     query = "SELECT * FROM todos WHERE user_id = ?"
     if only_pending:
         query += " AND done = 0"
-    query += " ORDER BY done ASC, id DESC"
+    query += " ORDER BY done ASC, id ASC"
     with get_conn() as conn:
         return conn.execute(query, (user_id,)).fetchall()
 
