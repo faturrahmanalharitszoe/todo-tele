@@ -8,6 +8,8 @@ Bot Telegram buat nyatet todo list langsung dari chat. Kirim pesan apa aja, lang
 - **Lihat todo** — `/list`
 - **Tandai selesai** — `/done <id>` (bisa dibalikin pakai `/undo <id>`)
 - **Hapus todo** — `/hapus <id>`
+- **Revisi todo** — `/edit <id> <teks baru>`
+- **Tambah catatan** — `/tambah <id> <catatan>`
 - **Pengingat** — `/remind <waktu> <teks>`
 - **Bersihkan yang selesai** — `/clear`
 
@@ -43,6 +45,8 @@ Bot Telegram buat nyatet todo list langsung dari chat. Kirim pesan apa aja, lang
 | `beli susu`             | langsung jadi todo                     |
 | `/list`                 | lihat semua todo                       |
 | `/done 3`               | todo #3 ditandai selesai               |
+| `/edit 3 teks baru`     | ganti isi todo #3                      |
+| `/tambah 3 catatan`     | tambahin catatan ke todo #3            |
 | `/hapus 3`              | todo #3 dihapus                        |
 | `/remind 22:30 belajar` | todo + diingetin jam 22:30             |
 | `/remind +2h meeting`   | todo + diingetin 2 jam dari sekarang   |

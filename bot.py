@@ -82,6 +82,8 @@ async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         "/list — lihat semua todo\n"
         "/done &lt;id&gt; — tandai selesai\n"
         "/hapus &lt;id&gt; — hapus todo\n"
+        "/edit &lt;id&gt; &lt;teks baru&gt; — ganti isi todo\n"
+        "/tambah &lt;id&gt; &lt;catatan&gt; — tambahin catatan ke todo\n"
         "/remind &lt;waktu&gt; &lt;teks&gt; — todo + pengingat\n"
         "/clear — hapus semua todo yang udah selesai\n\n"
         "Format waktu pengingat:\n"
@@ -164,6 +166,42 @@ async def clear_cmd(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(f"🗑️ {n} todo selesai dihapus.")
 
 
+def split_id_text(args):
+    if not args:
+        return None, ""
+    try:
+        todo_id = int(args[0].lstrip("#"))
+    except ValueError:
+        return None, ""
+    return todo_id, " ".join(args[1:]).strip()
+
+
+async def edit_cmd(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    todo_id, text = split_id_text(ctx.args)
+    if todo_id is None or not text:
+        await update.message.reply_text("Format: /edit <id> <teks baru>")
+        return
+    if db.update_todo(update.effective_user.id, todo_id, text):
+        await update.message.reply_text(
+            f"✏️ Todo #{todo_id} diperbarui:\n{text}"
+        )
+    else:
+        await update.message.reply_text(f"Todo #{todo_id} gak ketemu.")
+
+
+async def tambah_cmd(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    todo_id, text = split_id_text(ctx.args)
+    if todo_id is None or not text:
+        await update.message.reply_text("Format: /tambah <id> <catatan>")
+        return
+    todo = db.get_todo(update.effective_user.id, todo_id)
+    if not todo:
+        await update.message.reply_text(f"Todo #{todo_id} gak ketemu.")
+        return
+    db.update_todo(update.effective_user.id, todo_id, f"{todo['text']}\n{text}")
+    await update.message.reply_text(f"➕ Catatan ditambahin ke #{todo_id}.")
+
+
 async def remind_cmd(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     args = " ".join(ctx.args)
     if not args:
@@ -217,6 +255,8 @@ def main():
     app.add_handler(CommandHandler("done", done_cmd))
     app.add_handler(CommandHandler(["undo", "undone"], undo_cmd))
     app.add_handler(CommandHandler(["hapus", "del", "delete"], hapus_cmd))
+    app.add_handler(CommandHandler(["edit", "revisi"], edit_cmd))
+    app.add_handler(CommandHandler(["tambah", "append"], tambah_cmd))
     app.add_handler(CommandHandler("clear", clear_cmd))
     app.add_handler(CommandHandler("remind", remind_cmd))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, add_from_text))

@@ -55,6 +55,22 @@ def list_todos(user_id, only_pending=False):
         return conn.execute(query, (user_id,)).fetchall()
 
 
+def get_todo(user_id, todo_id):
+    with get_conn() as conn:
+        return conn.execute(
+            "SELECT * FROM todos WHERE id = ? AND user_id = ?", (todo_id, user_id)
+        ).fetchone()
+
+
+def update_todo(user_id, todo_id, text):
+    with get_conn() as conn:
+        cur = conn.execute(
+            "UPDATE todos SET text = ? WHERE id = ? AND user_id = ?",
+            (text, todo_id, user_id),
+        )
+        return cur.rowcount > 0
+
+
 def mark_done(user_id, todo_id, done=True):
     with get_conn() as conn:
         cur = conn.execute(
