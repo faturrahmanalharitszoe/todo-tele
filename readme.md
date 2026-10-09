@@ -30,6 +30,10 @@ Bot Telegram buat nyatet todo list langsung dari chat. Kirim pesan apa aja, lang
    BOT_TOKEN=123456789:token_kamu
    ```
 
+   Buat batasi cuma ID tertentu yang boleh pakai bot, isi `ALLOWED_USER_IDS`
+   (pisah pakai koma). Kosongin kalau mau semua orang boleh. Kalau ada yang
+   gak diizinkan chat, bot bakal balas sambil nunjukin ID Telegram-nya.
+
 4. Jalanin bot:
 
    ```powershell

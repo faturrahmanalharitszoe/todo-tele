@@ -8,9 +8,11 @@ from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import (
     Application,
+    ApplicationHandlerStop,
     CommandHandler,
     ContextTypes,
     MessageHandler,
+    TypeHandler,
     filters,
 )
 
@@ -20,12 +22,30 @@ load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
 CHECK_INTERVAL = 30  # detik
 
+ALLOWED_USER_IDS = {
+    int(x) for x in os.getenv("ALLOWED_USER_IDS", "").replace(" ", "").split(",") if x.isdigit()
+}
+
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO,
 )
 logging.getLogger("httpx").setLevel(logging.WARNING)
 log = logging.getLogger(__name__)
+
+
+def is_allowed(user_id):
+    return not ALLOWED_USER_IDS or user_id in ALLOWED_USER_IDS
+
+
+async def block_unauthorized(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    if user and not is_allowed(user.id):
+        if update.effective_message:
+            await update.effective_message.reply_text(
+                f"⛔ Maaf, kamu gak punya akses ke bot ini.\nID kamu: {user.id}"
+            )
+        raise ApplicationHandlerStop
 
 
 def parse_reminder(args):
@@ -249,6 +269,7 @@ def main():
     db.init_db()
 
     app = Application.builder().token(TOKEN).build()
+    app.add_handler(TypeHandler(Update, block_unauthorized), group=-1)
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_cmd))
     app.add_handler(CommandHandler("list", list_cmd))
