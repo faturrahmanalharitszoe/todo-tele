@@ -11,7 +11,8 @@ Bot Telegram buat nyatet todo list langsung dari chat. Kirim pesan apa aja, lang
 - **Revisi todo** — `/edit <id> <teks baru>`
 - **Tambah catatan** — `/tambah <id> <catatan>`
 - **Pengingat** — `/remind <waktu> <teks>`
-- **Bersihkan yang selesai** — `/clear`
+- **Bersihkan yang selesai** — `/clear` (diarsipkan, bukan dihapus)
+- **Dashboard web** — lihat todo selesai & arsip lewat browser
 
 ## Setup
 
@@ -42,6 +43,22 @@ Bot Telegram buat nyatet todo list langsung dari chat. Kirim pesan apa aja, lang
 
 5. Buka chat bot di Telegram, kirim `/start`.
 
+## Dashboard web
+
+Dashboard buat ngeliat todo, termasuk yang udah selesai dan yang udah
+di-`/clear` (diarsipkan). Jalanin di terminal terpisah:
+
+```powershell
+python dashboard.py
+```
+
+Buka http://127.0.0.1:5000 di browser. Ada tab: **Selesai**, **Diarsipkan**,
+**Belum selesai**, dan **Semua**. Pakai data `todo.db` yang sama kayak bot.
+
+Kalau mau password, isi `DASHBOARD_PASSWORD` di `.env` (login pakai Basic Auth,
+username bebas). Default cuma bisa diakses dari komputer sendiri; ubah
+`DASHBOARD_HOST` ke `0.0.0.0` kalau mau diakses dari LAN.
+
 ## Contoh pakai
 
 | Kirim ke bot            | Hasil                                  |
@@ -61,6 +78,8 @@ Format waktu yang didukung: `HH:MM`, `DD-MM-YYYY HH:MM`, dan relatif `+30m` / `+
 ## Struktur
 
 - `bot.py` — handler Telegram + parser waktu reminder
+- `dashboard.py` — web dashboard (Flask)
+- `templates/index.html` — tampilan dashboard
 - `db.py` — penyimpanan SQLite (`todo.db`, dibuat otomatis)
 - `requirements.txt` — dependency
 

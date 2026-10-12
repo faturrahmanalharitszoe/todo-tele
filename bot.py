@@ -105,7 +105,7 @@ async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         "/edit &lt;id&gt; &lt;teks baru&gt; — ganti isi todo\n"
         "/tambah &lt;id&gt; &lt;catatan&gt; — tambahin catatan ke todo\n"
         "/remind &lt;waktu&gt; &lt;teks&gt; — todo + pengingat\n"
-        "/clear — hapus semua todo yang udah selesai\n\n"
+        "/clear — arsipkan todo yang udah selesai (tetep ada di dashboard)\n\n"
         "Format waktu pengingat:\n"
         "• <code>22:30</code> (hari ini/ besok)\n"
         "• <code>17-08-2026 09:00</code>\n"
@@ -182,8 +182,10 @@ async def hapus_cmd(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
 
 async def clear_cmd(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    n = db.clear_done(update.effective_user.id)
-    await update.message.reply_text(f"🗑️ {n} todo selesai dihapus.")
+    n = db.archive_done(update.effective_user.id)
+    await update.message.reply_text(
+        f"📦 {n} todo selesai diarsipkan (masih bisa diliat di dashboard)."
+    )
 
 
 def split_id_text(args):
