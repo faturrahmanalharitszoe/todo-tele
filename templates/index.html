@@ -97,13 +97,19 @@
     .col-status { width: 128px; }
     .col-user, .col-date { width: 108px; color: var(--ink-soft); font-size: 12.5px; font-variant-numeric: tabular-nums; }
 
-    .state { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; }
-    .mark { width: 9px; height: 9px; flex: none; border-radius: 1px; }
-    .state.pending .mark { border: 1.5px solid var(--ink-soft); }
-    .state.done .mark { background: var(--ink); }
-    .state.done { color: var(--ink-soft); }
-    .state.archived .mark { background: var(--accent); }
+    .state { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; }
+    .mark {
+      position: relative; width: 15px; height: 15px; flex: none;
+      border: 1.5px solid var(--ink-soft); border-radius: 2px;
+    }
+    .state.done { color: var(--ink); }
+    .state.done .mark { background: var(--ink); border-color: var(--ink); }
+    .state.done .mark::after {
+      content: ""; position: absolute; left: 4px; top: 1px; width: 4px; height: 8px;
+      border: solid var(--paper); border-width: 0 2px 2px 0; transform: rotate(45deg);
+    }
     .state.archived { color: var(--accent); }
+    .state.archived .mark { background: var(--accent); border-color: var(--accent); }
 
     /* ---- Empty state ---- */
     .empty {
