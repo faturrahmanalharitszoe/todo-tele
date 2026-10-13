@@ -3,112 +3,230 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Todo Dashboard</title>
+  <title>Buku Catatan</title>
+  <link rel="preload" as="style" href="data:text/css," />
   <style>
     :root {
-      --bg: #0f172a;
-      --card: #1e293b;
-      --muted: #94a3b8;
-      --text: #e2e8f0;
-      --accent: #38bdf8;
-      --done: #22c55e;
-      --archived: #f59e0b;
+      --paper: #f4f1e9;
+      --ink: #1b1a16;
+      --ink-soft: #6c6456;
+      --rule: #d8d1c2;
+      --rule-soft: #e7e1d4;
+      --accent: #9b2c22;
+      --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+      --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
+    html[data-theme="dark"] {
+      --paper: #15140f;
+      --ink: #e8e2d4;
+      --ink-soft: #9c937f;
+      --rule: #2e2b23;
+      --rule-soft: #221f18;
+      --accent: #e08a6f;
+    }
+
     * { box-sizing: border-box; }
+    html, body { background: var(--paper); }
     body {
       margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      padding: 24px;
+      color: var(--ink);
+      font-family: var(--sans);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
     }
-    .wrap { max-width: 1000px; margin: 0 auto; }
-    h1 { font-size: 22px; margin: 0 0 16px; }
-    .stats { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
-    .stat {
-      background: var(--card); border-radius: 10px; padding: 12px 18px; min-width: 110px;
+    a { color: inherit; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    .sheet { max-width: 880px; margin: 0 auto; padding: 40px 24px 64px; }
+
+    /* ---- Masthead ---- */
+    .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 12px; }
+    .masthead-top {
+      display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
     }
-    .stat .n { font-size: 24px; font-weight: 700; }
-    .stat .l { font-size: 12px; color: var(--muted); }
-    .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
-    .tabs a {
-      text-decoration: none; color: var(--text); background: var(--card);
-      padding: 8px 14px; border-radius: 999px; font-size: 14px;
-      border: 1px solid transparent;
+    .masthead h1 {
+      font-family: var(--serif); font-weight: 600; font-size: clamp(26px, 5vw, 34px);
+      margin: 0; letter-spacing: .2px;
     }
-    .tabs a.active { border-color: var(--accent); color: var(--accent); }
-    table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 12px; overflow: hidden; }
-    th, td { padding: 12px 14px; text-align: left; font-size: 14px; vertical-align: top; }
-    th { background: #172033; color: var(--muted); font-weight: 600; }
-    tr + tr td { border-top: 1px solid #263449; }
-    td.id { color: var(--muted); white-space: nowrap; }
-    .badge { font-size: 12px; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
-    .badge.done { background: rgba(34,197,94,.15); color: var(--done); }
-    .badge.archived { background: rgba(245,158,11,.15); color: var(--archived); }
-    .badge.pending { background: rgba(148,163,184,.15); color: var(--muted); }
-    .meta { font-size: 12px; color: var(--muted); margin-top: 4px; white-space: pre-line; }
-    .empty { padding: 40px; text-align: center; color: var(--muted); background: var(--card); border-radius: 12px; }
+    .toggle {
+      font: inherit; font-size: 13px; color: var(--ink-soft);
+      background: none; border: 1px solid var(--rule); border-radius: 2px;
+      padding: 6px 10px; cursor: pointer; min-height: 32px;
+    }
+    .toggle:hover { color: var(--ink); border-color: var(--ink-soft); }
+    .masthead-meta {
+      margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px 14px;
+      font-size: 13px; color: var(--ink-soft); font-variant-numeric: tabular-nums;
+    }
+    .masthead-meta b { color: var(--ink); font-weight: 600; }
+
+    /* ---- Filter index ---- */
+    .index {
+      display: flex; flex-wrap: wrap; list-style: none; margin: 0;
+      padding: 0; border-bottom: 1px solid var(--rule);
+    }
+    .index a {
+      display: inline-flex; align-items: baseline; gap: 7px;
+      text-decoration: none; padding: 12px 16px 10px; font-size: 14px;
+      color: var(--ink-soft); border-bottom: 2px solid transparent; margin-bottom: -1px;
+    }
+    .index a:hover { color: var(--ink); }
+    .index a[aria-current="true"] { color: var(--ink); border-bottom-color: var(--ink); }
+    .index .count {
+      font-size: 12px; color: var(--ink-soft); font-variant-numeric: tabular-nums;
+    }
+
+    /* ---- Ledger table ---- */
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    thead th {
+      text-align: left; font-size: 11px; font-weight: 600; color: var(--ink-soft);
+      padding: 12px 14px 8px 0; border-bottom: 1px solid var(--rule);
+    }
+    tbody td {
+      padding: 16px 14px 16px 0; border-bottom: 1px solid var(--rule-soft);
+      vertical-align: top; font-size: 14px;
+    }
+    tbody tr:hover td { background: color-mix(in srgb, var(--ink) 3%, transparent); }
+
+    .col-id {
+      width: 52px; color: var(--ink-soft); font-size: 12px;
+      font-variant-numeric: tabular-nums; padding-top: 18px;
+    }
+    .note { font-family: var(--serif); font-size: 16px; line-height: 1.45; white-space: pre-wrap; }
+    .annot { margin-top: 6px; font-size: 12px; color: var(--ink-soft); font-family: var(--sans); }
+    .col-status { width: 128px; }
+    .col-user, .col-date { width: 108px; color: var(--ink-soft); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+
+    .state { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; }
+    .mark { width: 9px; height: 9px; flex: none; border-radius: 1px; }
+    .state.pending .mark { border: 1.5px solid var(--ink-soft); }
+    .state.done .mark { background: var(--ink); }
+    .state.done { color: var(--ink-soft); }
+    .state.archived .mark { background: var(--accent); }
+    .state.archived { color: var(--accent); }
+
+    /* ---- Empty state ---- */
+    .empty {
+      border: 1px dashed var(--rule); border-top: none;
+      padding: 48px 24px; text-align: center;
+    }
+    .empty h2 { font-family: var(--serif); font-weight: 600; margin: 0 0 6px; font-size: 18px; }
+    .empty p { margin: 0; color: var(--ink-soft); font-size: 14px; }
+
+    /* ---- Footer ---- */
+    .foot {
+      margin-top: 20px; padding-top: 12px; border-top: 1px solid var(--rule);
+      font-size: 12px; color: var(--ink-soft); display: flex; flex-wrap: wrap; gap: 4px 12px;
+    }
+
+    @media (max-width: 640px) {
+      .sheet { padding: 28px 18px 48px; }
+      thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+      tbody tr { display: block; border-bottom: 1px solid var(--rule-soft); padding: 16px 0; }
+      tbody tr:hover td { background: none; }
+      tbody td { display: block; width: auto; border: none; padding: 0; }
+      .col-id { padding: 0 0 6px; }
+      .col-id::before { content: "No. "; }
+      .note { margin-bottom: 8px; }
+      .col-user, .col-date { display: inline-block; width: auto; margin-right: 16px; }
+      .col-user::before { content: "User "; }
+      .col-date::before { content: "Dibuat "; }
+      .col-status { margin-bottom: 8px; }
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <h1>📋 Todo Dashboard</h1>
+  <main class="sheet">
+    <header class="masthead">
+      <div class="masthead-top">
+        <h1>Buku Catatan</h1>
+        <button class="toggle" id="theme-toggle" type="button" aria-pressed="false">Gelap</button>
+      </div>
+      <div class="masthead-meta">
+        <span>{{ today }}</span>
+        <span><b>{{ stats.total }}</b> catatan</span>
+        <span><b>{{ stats.pending }}</b> terbuka</span>
+        <span><b>{{ stats.done }}</b> selesai</span>
+        <span><b>{{ stats.archived }}</b> arsip</span>
+      </div>
+    </header>
 
-    <div class="stats">
-      <div class="stat"><div class="n">{{ stats.total }}</div><div class="l">Total</div></div>
-      <div class="stat"><div class="n">{{ stats.pending }}</div><div class="l">Belum selesai</div></div>
-      <div class="stat"><div class="n">{{ stats.done }}</div><div class="l">Selesai</div></div>
-      <div class="stat"><div class="n">{{ stats.archived }}</div><div class="l">Diarsipkan</div></div>
-    </div>
-
-    <div class="tabs">
-      {% for key, f in filters.items() %}
-        <a href="?f={{ key }}" class="{{ 'active' if key == current else '' }}">{{ f.label }}</a>
-      {% endfor %}
-    </div>
+    <nav aria-label="Filter catatan">
+      <ul class="index">
+        {% for key, f in filters.items() %}
+        <li>
+          <a href="?f={{ key }}" {% if key == current %}aria-current="true"{% endif %}>
+            {{ f.label }} <span class="count">{{ filter_counts[key] }}</span>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </nav>
 
     {% if rows %}
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Todo</th>
-            <th>Status</th>
-            <th>User</th>
-            <th>Dibuat</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for r in rows %}
-          <tr>
-            <td class="id">{{ r['id'] }}</td>
-            <td>
-              {{ r['text'] }}
-              {% if r['remind_at'] %}
-                <div class="meta">⏰ {{ r['remind_at'][:16].replace('T', ' ') }}</div>
-              {% endif %}
-            </td>
-            <td>
-              {% if r['archived'] %}
-                <span class="badge archived">📦 Diarsipkan</span>
-              {% elif r['done'] %}
-                <span class="badge done">✅ Selesai</span>
-              {% else %}
-                <span class="badge pending">⬜ Belum</span>
-              {% endif %}
-              {% if r['archived_at'] %}
-                <div class="meta">{{ r['archived_at'][:16].replace('T', ' ') }}</div>
-              {% endif %}
-            </td>
-            <td class="id">{{ r['user_id'] }}</td>
-            <td class="id">{{ r['created_at'][:16].replace('T', ' ') }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <table>
+      <thead>
+        <tr>
+          <th class="col-id" scope="col">No.</th>
+          <th scope="col">Catatan</th>
+          <th class="col-status" scope="col">Keadaan</th>
+          <th class="col-user" scope="col">User</th>
+          <th class="col-date" scope="col">Dibuat</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td class="col-id">{{ r['id'] }}</td>
+          <td class="note">{{ r['text'] }}{% if r['remind_at'] %}<div class="annot">Pengingat: {{ r['remind_at'][:16].replace('T', ' ') }}</div>{% endif %}</td>
+          <td class="col-status">
+            {% if r['archived'] %}
+            <span class="state archived"><span class="mark" aria-hidden="true"></span>Arsip</span>
+              {% if r['archived_at'] %}<div class="annot">{{ r['archived_at'][:16].replace('T', ' ') }}</div>{% endif %}
+            {% elif r['done'] %}
+            <span class="state done"><span class="mark" aria-hidden="true"></span>Selesai</span>
+            {% else %}
+            <span class="state pending"><span class="mark" aria-hidden="true"></span>Terbuka</span>
+            {% endif %}
+          </td>
+          <td class="col-user">{{ r['user_id'] }}</td>
+          <td class="col-date">{{ r['created_at'][:16].replace('T', ' ') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
     {% else %}
-      <div class="empty">Belum ada data di kategori ini.</div>
+    <div class="empty">
+      <h2>Bagian ini masih kosong</h2>
+      <p>Belum ada catatan berstatus "{{ filters[current].label }}". Coba pilih filter lain, atau kirim todo baru lewat bot Telegram.</p>
+    </div>
     {% endif %}
-  </div>
+
+    <footer class="foot">
+      <span>Sumber: todo.db</span>
+      <span>Data dibaca langsung dari basis data bot</span>
+    </footer>
+  </main>
+
+  <script>
+    (function () {
+      var root = document.documentElement;
+      var btn = document.getElementById("theme-toggle");
+      var saved = localStorage.getItem("todo-theme");
+      if (saved) root.setAttribute("data-theme", saved);
+      function sync() {
+        var dark = root.getAttribute("data-theme") === "dark";
+        btn.textContent = dark ? "Terang" : "Gelap";
+        btn.setAttribute("aria-pressed", dark ? "true" : "false");
+      }
+      sync();
+      btn.addEventListener("click", function () {
+        var dark = root.getAttribute("data-theme") === "dark";
+        root.setAttribute("data-theme", dark ? "" : "dark");
+        localStorage.setItem("todo-theme", dark ? "light" : "dark");
+        sync();
+      });
+    })();
+  </script>
 </body>
 </html>
