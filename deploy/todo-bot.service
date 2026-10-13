@@ -1,0 +1,18 @@
+[Unit]
+Description=Todo Telegram Bot (polling)
+After=network.target
+
+[Service]
+Type=simple
+# Ganti sesuai user & lokasi project kamu
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/todo-tele
+EnvironmentFile=/opt/todo-tele/.env
+ExecStart=/opt/todo-tele/.venv/bin/python bot.py
+
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

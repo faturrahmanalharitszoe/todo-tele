@@ -1,3 +1,6 @@
 python-telegram-bot[job-queue]==21.6
 python-dotenv==1.0.1
 Flask==3.0.3
+
+# Cuma keinstal di Linux (buat production di server)
+gunicorn==23.0.0; sys_platform == "linux"

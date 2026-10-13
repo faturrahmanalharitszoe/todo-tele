@@ -59,6 +59,57 @@ Kalau mau password, isi `DASHBOARD_PASSWORD` di `.env` (login pakai Basic Auth,
 username bebas). Default cuma bisa diakses dari komputer sendiri; ubah
 `DASHBOARD_HOST` ke `0.0.0.0` kalau mau diakses dari LAN.
 
+## Deploy ke server (nginx + HTTPS)
+
+Contoh untuk Ubuntu/Debian, subdomain `todo.faturrahmanalharitszoe.my.id`,
+app di `/opt/todo-tele`. Ganti path/user kalau beda.
+
+1. **Copy project & install dependency** di server:
+
+   ```bash
+   sudo mkdir -p /opt/todo-tele
+   # copy file project ke /opt/todo-tele (scp/git clone)
+   cd /opt/todo-tele
+   python3 -m venv .venv
+   .venv/bin/pip install -r requirements.txt
+   cp .env.example .env   # lalu isi BOT_TOKEN & ALLOWED_USER_IDS
+   ```
+
+2. **Jalanin sebagai service** (bot + dashboard):
+
+   ```bash
+   sudo cp deploy/todo-bot.service deploy/todo-dashboard.service /etc/systemd/system/
+   # edit dulu User/WorkingDirectory kalau path-nya beda
+   sudo systemctl daemon-reload
+   sudo systemctl enable --now todo-bot todo-dashboard
+   sudo systemctl status todo-dashboard
+   ```
+
+   Cek dashboard lokal: `curl http://127.0.0.1:5000` harus balas HTML.
+
+3. **Pasang config nginx**:
+
+   ```bash
+   sudo cp deploy/nginx-todo.conf /etc/nginx/sites-available/todo-dashboard
+   sudo ln -s /etc/nginx/sites-available/todo-dashboard /etc/nginx/sites-enabled/
+   sudo nginx -t && sudo systemctl reload nginx
+   ```
+
+4. **Arahin DNS**: bikin record `A` untuk `todo` ke IP server, tunggu propagasi.
+
+5. **HTTPS via certbot** (otomatis nambah sertifikat + redirect ke 443):
+
+   ```bash
+   sudo apt install certbot python3-certbot-nginx
+   sudo certbot --nginx -d todo.faturrahmanalharitszoe.my.id
+   ```
+
+   Buka `https://todo.faturrahmanalharitszoe.my.id`. Renewal udah otomatis
+   lewat systemd timer dari certbot.
+
+Catatan: dashboard gak pakai auth sesuai pilihanmu. Kalau nanti mau dibatasi,
+bisa pasang Basic Auth di nginx atau isi `DASHBOARD_PASSWORD` di `.env`.
+
 ## Contoh pakai
 
 | Kirim ke bot            | Hasil                                  |
@@ -81,6 +132,7 @@ Format waktu yang didukung: `HH:MM`, `DD-MM-YYYY HH:MM`, dan relatif `+30m` / `+
 - `dashboard.py` — web dashboard (Flask)
 - `templates/index.html` — tampilan dashboard
 - `db.py` — penyimpanan SQLite (`todo.db`, dibuat otomatis)
+- `deploy/` — config nginx, systemd service, gunicorn
 - `requirements.txt` — dependency
 
 Data disimpan lokal di `todo.db`, jadi tiap user cuma lihat todo-nya sendiri.
