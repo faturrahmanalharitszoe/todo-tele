@@ -188,9 +188,11 @@
           <td class="col-status">
             {% if r['archived'] %}
             <span class="state archived"><span class="mark" aria-hidden="true"></span>Arsip</span>
-              {% if r['archived_at'] %}<div class="annot">{{ r['archived_at'][:16].replace('T', ' ') }}</div>{% endif %}
+              {% if r['done_at'] %}<div class="annot">Selesai {{ r['done_at'][:16].replace('T', ' ') }}</div>{% endif %}
+              {% if r['archived_at'] %}<div class="annot">Diarsipkan {{ r['archived_at'][:16].replace('T', ' ') }}</div>{% endif %}
             {% elif r['done'] %}
             <span class="state done"><span class="mark" aria-hidden="true"></span>Selesai</span>
+              {% if r['done_at'] %}<div class="annot">{{ r['done_at'][:16].replace('T', ' ') }}</div>{% endif %}
             {% else %}
             <span class="state pending"><span class="mark" aria-hidden="true"></span>Terbuka</span>
             {% endif %}

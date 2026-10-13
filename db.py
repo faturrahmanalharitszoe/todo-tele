@@ -29,6 +29,7 @@ def init_db():
                 user_id     INTEGER NOT NULL,
                 text        TEXT NOT NULL,
                 done        INTEGER NOT NULL DEFAULT 0,
+                done_at     TEXT,
                 archived    INTEGER NOT NULL DEFAULT 0,
                 archived_at TEXT,
                 remind_at   TEXT,
@@ -46,6 +47,8 @@ def init_db():
 def _migrate(conn):
     """Tambahin kolom baru kalau DB lama belum punya."""
     cols = {row["name"] for row in conn.execute("PRAGMA table_info(todos)")}
+    if "done_at" not in cols:
+        conn.execute("ALTER TABLE todos ADD COLUMN done_at TEXT")
     if "archived" not in cols:
         conn.execute("ALTER TABLE todos ADD COLUMN archived INTEGER NOT NULL DEFAULT 0")
     if "archived_at" not in cols:
@@ -87,10 +90,11 @@ def update_todo(user_id, todo_id, text):
 
 
 def mark_done(user_id, todo_id, done=True):
+    done_at = datetime.now().isoformat(timespec="seconds") if done else None
     with get_conn() as conn:
         cur = conn.execute(
-            "UPDATE todos SET done = ? WHERE id = ? AND user_id = ?",
-            (1 if done else 0, todo_id, user_id),
+            "UPDATE todos SET done = ?, done_at = ? WHERE id = ? AND user_id = ?",
+            (1 if done else 0, done_at, todo_id, user_id),
         )
         return cur.rowcount > 0
 
