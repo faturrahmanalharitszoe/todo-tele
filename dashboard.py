@@ -1,10 +1,10 @@
 import os
-from datetime import datetime
 
 from dotenv import load_dotenv
 from flask import Flask, Response, render_template, request
 
 import db
+import tz
 
 load_dotenv()
 PASSWORD = os.getenv("DASHBOARD_PASSWORD")
@@ -12,6 +12,7 @@ HOST = os.getenv("DASHBOARD_HOST", "127.0.0.1")
 PORT = int(os.getenv("DASHBOARD_PORT", "5000"))
 
 app = Flask(__name__)
+app.jinja_env.filters["fmt_dt"] = tz.fmt_wib
 
 FILTERS = {
     "pending": {"label": "Terbuka", "kwargs": {"done": False, "archived": False}},
@@ -53,7 +54,7 @@ def index():
         filters=FILTERS,
         filter_counts=filter_counts,
         stats=stats,
-        today=datetime.now().strftime("%d-%m-%Y %H:%M"),
+        today=tz.fmt_wib(tz.now_iso()),
     )
 
 

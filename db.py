@@ -1,7 +1,8 @@
 import sqlite3
 from contextlib import contextmanager
-from datetime import datetime
 from pathlib import Path
+
+import tz
 
 DB_PATH = Path(__file__).with_name("todo.db")
 
@@ -59,7 +60,7 @@ def add_todo(user_id, text, remind_at=None):
     with get_conn() as conn:
         cur = conn.execute(
             "INSERT INTO todos (user_id, text, remind_at, created_at) VALUES (?, ?, ?, ?)",
-            (user_id, text, remind_at, datetime.now().isoformat(timespec="seconds")),
+            (user_id, text, remind_at, tz.now_iso()),
         )
         return cur.lastrowid
 
@@ -90,7 +91,7 @@ def update_todo(user_id, todo_id, text):
 
 
 def mark_done(user_id, todo_id, done=True):
-    done_at = datetime.now().isoformat(timespec="seconds") if done else None
+    done_at = tz.now_iso() if done else None
     with get_conn() as conn:
         cur = conn.execute(
             "UPDATE todos SET done = ?, done_at = ? WHERE id = ? AND user_id = ?",
@@ -116,7 +117,7 @@ def archive_done(user_id):
             SET archived = 1, archived_at = ?
             WHERE user_id = ? AND done = 1 AND archived = 0
             """,
-            (datetime.now().isoformat(timespec="seconds"), user_id),
+            (tz.now_iso(), user_id),
         )
         return cur.rowcount
 

@@ -17,6 +17,7 @@ from telegram.ext import (
 )
 
 import db
+import tz
 
 load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
@@ -49,8 +50,8 @@ async def block_unauthorized(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
 
 def parse_reminder(args):
-    """Ambil waktu di awal `args`. Return (datetime, sisa_teks) atau (None, None)."""
-    now = datetime.now()
+    """Ambil waktu di awal `args` (dianggap WIB). Return (datetime WIB, sisa_teks)."""
+    now = tz.now_utc().astimezone(tz.WIB)
     text = args.strip()
 
     m = re.match(r"^\+(\d+)\s*([smhd])\s+(.+)$", text, re.IGNORECASE)
@@ -78,7 +79,7 @@ def parse_reminder(args):
         try:
             target = datetime(
                 int(m.group(3)), int(m.group(2)), int(m.group(1)),
-                int(m.group(4)), int(m.group(5)),
+                int(m.group(4)), int(m.group(5)), tzinfo=tz.WIB,
             )
         except ValueError:
             return None, None
@@ -91,7 +92,7 @@ def fmt(todo):
     mark = "✅" if todo["done"] else "⬜"
     line = f"{mark} <code>#{todo['id']}</code> {todo['text']}"
     if todo["remind_at"]:
-        line += f"\n     ⏰ <i>{todo['remind_at'][:16].replace('T', ' ')}</i>"
+        line += f"\n     ⏰ <i>{tz.fmt_wib(todo['remind_at'])}</i>"
     return line
 
 
@@ -241,17 +242,17 @@ async def remind_cmd(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         )
         return
     todo_id = db.add_todo(
-        update.effective_user.id, text, remind_at=when.isoformat(timespec="seconds")
+        update.effective_user.id, text, remind_at=tz.to_utc_iso(when)
     )
     await update.message.reply_text(
         f"⏰ Dicatet! <code>#{todo_id}</code> {text}\n"
-        f"Diingetin: <b>{when.strftime('%d-%m-%Y %H:%M')}</b>",
+        f"Diingetin: <b>{when.strftime('%d-%m-%Y %H:%M')} WIB</b>",
         parse_mode=ParseMode.HTML,
     )
 
 
 async def check_reminders(ctx: ContextTypes.DEFAULT_TYPE):
-    for row in db.due_reminders(datetime.now().isoformat(timespec="seconds")):
+    for row in db.due_reminders(tz.now_iso()):
         try:
             await ctx.bot.send_message(
                 chat_id=row["user_id"],

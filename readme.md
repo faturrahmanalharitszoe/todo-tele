@@ -124,7 +124,7 @@ bisa pasang Basic Auth di nginx atau isi `DASHBOARD_PASSWORD` di `.env`.
 | `/remind +2h meeting`   | todo + diingetin 2 jam dari sekarang   |
 | `/remind 17-08-2026 09:00 bayar listrik` | diingetin di tanggal & jam itu |
 
-Format waktu yang didukung: `HH:MM`, `DD-MM-YYYY HH:MM`, dan relatif `+30m` / `+2h` / `+1d`.
+Format waktu yang didukung: `HH:MM`, `DD-MM-YYYY HH:MM`, dan relatif `+30m` / `+2h` / `+1d`. Semua waktu ditafsirkan **WIB (GMT+7)**; disimpan sebagai UTC, ditampilkan kembali sebagai WIB.
 
 ## Struktur
 
