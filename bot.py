@@ -2,6 +2,7 @@ import logging
 import os
 import re
 from datetime import datetime, timedelta
+from html import escape
 
 from dotenv import load_dotenv
 from telegram import Update
@@ -90,7 +91,7 @@ def parse_reminder(args):
 
 def fmt(todo):
     mark = "✅" if todo["done"] else "⬜"
-    line = f"{mark} <code>#{todo['id']}</code> {todo['text']}"
+    line = f"{mark} <code>#{todo['id']}</code> {escape(todo['text'])}"
     if todo["remind_at"]:
         line += f"\n     ⏰ <i>{tz.fmt_wib(todo['remind_at'])}</i>"
     return line
@@ -138,7 +139,7 @@ async def add_from_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         return
     todo_id = db.add_todo(update.effective_user.id, text)
     await update.message.reply_text(
-        f"✅ Dicatet! <code>#{todo_id}</code> {text}", parse_mode=ParseMode.HTML
+        f"✅ Dicatet! <code>#{todo_id}</code> {escape(text)}", parse_mode=ParseMode.HTML
     )
 
 
@@ -245,7 +246,7 @@ async def remind_cmd(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         update.effective_user.id, text, remind_at=tz.to_utc_iso(when)
     )
     await update.message.reply_text(
-        f"⏰ Dicatet! <code>#{todo_id}</code> {text}\n"
+        f"⏰ Dicatet! <code>#{todo_id}</code> {escape(text)}\n"
         f"Diingetin: <b>{when.strftime('%d-%m-%Y %H:%M')} WIB</b>",
         parse_mode=ParseMode.HTML,
     )
@@ -256,7 +257,7 @@ async def check_reminders(ctx: ContextTypes.DEFAULT_TYPE):
         try:
             await ctx.bot.send_message(
                 chat_id=row["user_id"],
-                text=f"⏰ *Pengingat!*\n<code>#{row['id']}</code> {row['text']}",
+                text=f"⏰ *Pengingat!*\n<code>#{row['id']}</code> {escape(row['text'])}",
                 parse_mode=ParseMode.HTML,
             )
         except Exception as e:
